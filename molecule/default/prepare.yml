@@ -9,7 +9,7 @@
 
   - name: "Install PostgreSQL"
     vars:
-      postgresql_version: "11"
+      postgresql_version: "{{ ansible_env.POSTGRESQL_VERSION | default(13) }}"
     block:
     - name: "Install GPG"
       package:
@@ -36,8 +36,6 @@
     become: yes
 
   - name: Install Telegraf
-    vars:
-      postgresql_version: "11"
     block:
     - name: Add InfluxDB apt key (for Telegraf)
       apt_key:

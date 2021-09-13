@@ -20,6 +20,10 @@ jobs:
         ansible:
           - ansible
           - ansible==2.9.*
+        postgresql:
+          - 11
+          - 12
+          - 13
     steps:
       - name: Check out
         uses: actions/checkout@v2
@@ -33,3 +37,4 @@ jobs:
         run: molecule test --all
         env:
           MOLECULE_DISTRO: ${{ matrix.distro }}
+          POSTGRESQL_VERSION: ${{ matrix.postgresql }}

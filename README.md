@@ -1,6 +1,11 @@
 # Ansible Role: Barman
 
-Installs and configures Barman on Linux with optional regular backup (running by cron).
+Installs and configures Barman on Linux with optional:
+- regular backup (running by cron)
+- wals and snapshots uploading to S3 (running by cron)
+- metrics collection (by telegraf)
+
+This role is aimed to be as unopinionated as possible, i.e. all configuration parameters are passed through directly to barman configs.
 
 ## Requirements
 

@@ -1,0 +1,8 @@
+- include_tasks: absent.yml
+
+- name: Purge the package and delete data directories
+  apt:
+    name: barman
+    state: absent
+    purge: yes
+  become: yes

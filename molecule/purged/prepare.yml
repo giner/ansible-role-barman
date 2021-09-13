@@ -1,0 +1,3 @@
+---
+- import_playbook: ../default/prepare.yml
+- import_playbook: ../default/converge.yml

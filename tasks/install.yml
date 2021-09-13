@@ -1,0 +1,33 @@
+---
+- name: Add Barman apt key
+  apt_key:
+    url: "{{ barman_apt_key_url }}"
+  become: yes
+
+- name: Add Barman repository
+  apt_repository:
+    repo: "{{ barman_apt_repo }}"
+  become: yes
+
+- name: Install Barman package
+  package:
+    name: barman
+    state: "{{ barman_package_state }}"
+  become: yes
+
+- name: Install dependencies for s3 sync
+  block:
+  - name: Install awscli
+    package:
+      name: awscli
+    become: yes
+  - name: Install barman s3 scripts
+    copy:
+      src: "{{ item }}"
+      dest: "/usr/local/bin/{{ item }}"
+      mode: "0755"
+    loop:
+    - barman-aws-s3-sync.sh
+    - barman-aws-s3-stats.sh
+    become: yes
+  when: barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list | length > 0

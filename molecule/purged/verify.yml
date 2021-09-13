@@ -1,0 +1,62 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+  - name: Get list of pg_receivewal processes running as barman
+    command: 'pgrep -xu barman pg_receivewal'
+    register: restart_receiving_wals_status
+    failed_when: restart_receiving_wals_status.rc is not in [0, 1, 2]
+    changed_when: false
+    become: yes
+  - name: Check if pg_receivewal is still running
+    assert:
+      that: restart_receiving_wals_status.rc is in [1, 2]
+  - name: Find all cron files in /etc/cron.d
+    find:
+      paths: "/etc/cron.d"
+      patterns: 'barman-backup-*'
+    register: barman_cron_files
+    become: yes
+  - name: Find all config files in /etc/barman.d
+    find:
+      paths: "/etc/barman.d"
+      patterns: '*.conf'
+    register: barman_all_configs
+    become: yes
+  - name: Find all config files in /etc/sudoers.d
+    find:
+      paths: "/etc/sudoers.d"
+      patterns: 'barman-*'
+    register: barman_sudoers_configs
+    become: yes
+  - name: Find all config files in /etc/telegraf/telegraf.d
+    find:
+      paths: "/etc/telegraf/telegraf.d"
+      patterns: 'barman-*.conf'
+    register: barman_telegraf_configs
+    become: yes
+  - name: Find all scripts in /usr/local/bin
+    find:
+      paths: "/usr/local/bin"
+      patterns: 'barman-*'
+    register: barman_usr_local_bin_scripts
+    become: yes
+  - name: Check if all files were deleted
+    fail:
+      msg: "File {{ item }} was not deleted"
+    vars:
+      files_found: "{{
+        barman_all_configs.files +
+        barman_cron_files.files +
+        barman_sudoers_configs.files +
+        barman_telegraf_configs.files +
+        barman_usr_local_bin_scripts.files
+        }}"
+    loop: "{{ files_found | map(attribute='path') | list }}"
+  - name: Gather the package facts
+    package_facts:
+  - name: check if barman package was deleted
+    fail:
+      msg: "barman package was not deleted"
+    when: "'barman' in ansible_facts.packages"

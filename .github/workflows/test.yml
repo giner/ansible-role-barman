@@ -1,0 +1,35 @@
+---
+name: Run tests
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "17 5 * * 2"
+
+jobs:
+  molecule:
+    name: Molecule test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro:
+          - ubuntu:20.04
+          - ubuntu:18.04
+        ansible:
+          - ansible
+          - ansible==2.9.*
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install test dependencies
+        run: pip3 install "${{ matrix.ansible }}" molecule molecule-docker
+      - name: Run Molecule tests
+        run: molecule test --all
+        env:
+          MOLECULE_DISTRO: ${{ matrix.distro }}

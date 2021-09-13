@@ -1,0 +1,6 @@
+[{{ item.name }}]
+{% for param in item.params %}
+{% for key,value in param.items() %}
+{{ key }} = {{ value }}
+{% endfor %}
+{% endfor %}

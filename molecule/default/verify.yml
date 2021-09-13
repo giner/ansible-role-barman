@@ -1,0 +1,42 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+  - name: Read stats of necessary files
+    stat:
+      path: "{{ item }}"
+    register: stat_result
+    loop:
+    - /etc/barman.d/mypgserver-server.conf
+    - /etc/cron.d/barman-backup-mypgserver-backup
+    - /etc/cron.d/barman-backup-mypgserver-s3-sync
+    - /etc/telegraf/telegraf.d/barman-telegraf.conf
+    - /etc/sudoers.d/barman-telegraf-sudo
+  - name: Fail if necessary files are missing
+    fail:
+      msg: "{{ item.item }} does not exist"
+    when: not item.stat.exists
+    loop: "{{ stat_result.results }}"
+    loop_control:
+      label: "{{ item.item }}"
+  - name: Run full backup
+    vars:
+      ansible_ssh_pipelining: true
+    command: barman -f json backup mypgserver --wait
+    register: barman_backup_result
+    become: yes
+    become_user: barman
+    changed_when: false
+  - name: Backup is successful
+    vars:
+      backup_status: "{{ (barman_backup_result.stdout | from_json)['status'] }}"
+    assert:
+      that: backup_status == "DONE"
+  - name: Run Telegraf test
+    vars:
+      ansible_ssh_pipelining: true
+    command: telegraf --config-directory /etc/telegraf/telegraf.d --test --quiet
+    become: yes
+    become_user: telegraf
+    changed_when: false

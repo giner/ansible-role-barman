@@ -1,0 +1,10 @@
+---
+barman_apt_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+barman_apt_repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+barman_package_state: present
+barman_config: []
+barman_pg_servers: []
+barman_state: started
+barman_telegraf_enabled: false
+barman_telegraf_interval: "1m"
+barman_service_mgr: "{{ omit }}"

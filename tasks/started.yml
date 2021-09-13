@@ -1,0 +1,6 @@
+---
+- include_tasks: check-config.yml
+- include_tasks: install.yml
+- include_tasks: configure.yml
+- include_tasks: cron.yml
+- include_tasks: telegraf.yml

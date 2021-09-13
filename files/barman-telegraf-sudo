@@ -1,0 +1,6 @@
+telegraf ALL=(barman) NOPASSWD:/usr/bin/barman -f json check all
+telegraf ALL=(barman) NOPASSWD:/usr/bin/barman -f json list-backup all
+telegraf ALL=(barman) NOPASSWD:/usr/bin/barman -f json replication-status all
+telegraf ALL=(barman) NOPASSWD:/usr/bin/barman -f json show-backup *
+telegraf ALL=(barman) NOPASSWD:/usr/local/bin/barman-aws-s3-sync.sh *
+telegraf ALL=(barman) NOPASSWD:/usr/local/bin/barman-aws-s3-stats.sh *

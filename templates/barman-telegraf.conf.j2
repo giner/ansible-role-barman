@@ -1,0 +1,65 @@
+[[inputs.exec]]
+  commands = ['sh -c "sudo -u barman /usr/bin/barman -f json list-backup all | jq \"to_entries | map(.value[].servername = .key | .value | map(select(.status == \\\"DONE\\\")) | sort_by(.end_time_timestamp) | last // empty) | map(.age_seconds = now - (.end_time_timestamp | tonumber))\""']
+  tag_keys = ["servername"]
+  data_format = "json"
+  name_override = "barman_backup"
+  interval = "{{ barman_telegraf_interval }}"
+  [inputs.exec.tags]
+    w_service = "barman"
+
+[[inputs.exec]]
+  commands = ['sh -c "sudo -u barman /usr/bin/barman -f json check all | jq \"to_entries | map({servername: .key} + (.value | with_entries(.value = if .value.status == \\\"OK\\\" then 0 else 1 end) | .checks_with_errors = add))\""']
+  tag_keys = ["servername"]
+  data_format = "json"
+  name_override = "barman_check"
+  interval = "{{ barman_telegraf_interval }}"
+  [inputs.exec.tags]
+    w_service = "barman"
+
+[[inputs.exec]]
+  commands = ['sh -c "sudo -u barman /usr/bin/barman -f json replication-status all | jq \"to_entries | [ map(.value.streaming_clients[].servername = .key | .value)[] | .streaming_clients[] ]\""']
+  tag_keys = ["servername", "replication_slot"]
+  data_format = "json"
+  name_override = "barman_replication"
+  interval = "{{ barman_telegraf_interval }}"
+  [inputs.exec.tags]
+    w_service = "barman"
+
+[[inputs.exec]]
+  commands = ['sh -c "sudo -u barman /usr/bin/barman -f json list-backup all | jq -r \"to_entries | map(.value[].servername = .key | .value | map(select(.status == \\\"DONE\\\")) | sort_by(.end_time_timestamp) | last // empty)[] | .servername + \\\" \\\" + .backup_id\" | xargs -rl sudo -u barman /usr/bin/barman -f json show-backup | jq -n \"[inputs] | map(to_entries[] | { servername: .key, base: .value.base_backup_information, wal: .value.wal_information })\""']
+  tag_keys = ["servername"]
+  data_format = "json"
+  name_override = "barman_backup_details"
+  interval = "{{ barman_telegraf_interval }}"
+  [inputs.exec.tags]
+    w_service = "barman"
+
+{% for s in barman_pg_servers_with_s3_sync  %}
+{% set stats_name = s.backup_schedule.s3_sync.stats_name | default(s.name) %}
+[[inputs.exec]]
+  commands = ['sudo -u barman /usr/local/bin/barman-aws-s3-sync.sh stats "{{ stats_name }}-base" "{{ s.backup_schedule.s3_sync.base_max_age | default(0) }}"']
+  tag_keys = ["instance"]
+  data_format = "json"
+  name_override = "barman_s3_sync"
+  interval = "{{ barman_telegraf_interval }}"
+  [inputs.exec.tags]
+    w_service = "barman"
+
+[[inputs.exec]]
+  commands = ['sudo -u barman /usr/local/bin/barman-aws-s3-sync.sh stats "{{ stats_name }}-wals" "{{ s.backup_schedule.s3_sync.wals_max_age | default(0) }}"']
+  tag_keys = ["instance"]
+  data_format = "json"
+  name_override = "barman_s3_sync"
+  interval = "{{ barman_telegraf_interval }}"
+  [inputs.exec.tags]
+    w_service = "barman"
+
+[[inputs.exec]]
+  commands = ['sudo -u barman /usr/local/bin/barman-aws-s3-stats.sh show "{{ stats_name }}" "{{ s.backup_schedule.s3_sync.stats_max_age | default(0) }}"']
+  tag_keys = ["instance"]
+  data_format = "json"
+  name_override = "barman_s3_stats"
+  interval = "{{ barman_telegraf_interval }}"
+  [inputs.exec.tags]
+    w_service = "barman"
+{% endfor %}

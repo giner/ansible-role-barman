@@ -36,5 +36,7 @@ jobs:
       - name: Run Molecule tests
         run: molecule test --all
         env:
-          MOLECULE_DISTRO: ${{ matrix.distro }}
-          POSTGRESQL_VERSION: ${{ matrix.postgresql }}
+          PY_COLORS: '1'  # for molecule
+          ANSIBLE_FORCE_COLOR: 'True'
+          MOLECULE_DISTRO: '${{ matrix.distro }}'
+          POSTGRESQL_VERSION: '${{ matrix.postgresql }}'

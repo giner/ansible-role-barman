@@ -1,4 +1,5 @@
-[![Run tests](https://github.com/giner/ansible-role-barman/actions/workflows/test.yml/badge.svg)](https://github.com/giner/ansible-role-barman/actions/workflows/test.yml) [![Release](https://github.com/giner/ansible-role-barman/actions/workflows/release.yml/badge.svg)](https://github.com/giner/ansible-role-barman/actions/workflows/release.yml)
+[![Run tests][tests-badge]][tests-link]
+[![Release][release-badge]][release-link]
 
 # Ansible Role: Barman
 
@@ -12,6 +13,21 @@ This role is aimed to be as unopinionated as possible, i.e. all configuration pa
 ## Requirements
 
 * Ubuntu
+
+## Installation
+
+Install via [Ansible Galaxy][galaxy-link]:
+
+```
+ansible-galaxy collection install giner.barman
+```
+
+Or include this role in your `requirements.yml` file:
+
+```
+roles:
+  - name: giner.barman
+```
 
 ## Role Variables
 
@@ -128,3 +144,9 @@ Apache 2.0
 ## Authors
 
 This role was created in 2021 by [Stanislav German-Evtushenko](https://github.com/giner)
+
+[galaxy-link]:   https://galaxy.ansible.com/giner/barman
+[tests-badge]:   https://github.com/giner/ansible-role-barman/actions/workflows/test.yml/badge.svg
+[tests-link]:    https://github.com/giner/ansible-role-barman/actions/workflows/test.yml
+[release-badge]: https://github.com/giner/ansible-role-barman/actions/workflows/release.yml/badge.svg
+[release-link]:  https://github.com/giner/ansible-role-barman/actions/workflows/release.yml

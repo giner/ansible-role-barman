@@ -1,3 +1,5 @@
+[![Run tests](https://github.com/giner/ansible-role-barman/actions/workflows/test.yml/badge.svg)](https://github.com/giner/ansible-role-barman/actions/workflows/test.yml) [![Release](https://github.com/giner/ansible-role-barman/actions/workflows/release.yml/badge.svg)](https://github.com/giner/ansible-role-barman/actions/workflows/release.yml)
+
 # Ansible Role: Barman
 
 Installs and configures Barman on Linux with optional:

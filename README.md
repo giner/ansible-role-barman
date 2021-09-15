@@ -1,5 +1,4 @@
 [![Run tests][tests-badge]][tests-link]
-[![Release][release-badge]][release-link]
 
 # Ansible Role: Barman
 
@@ -148,5 +147,3 @@ This role was created in 2021 by [Stanislav German-Evtushenko](https://github.co
 [galaxy-link]:   https://galaxy.ansible.com/giner/barman
 [tests-badge]:   https://github.com/giner/ansible-role-barman/actions/workflows/test.yml/badge.svg
 [tests-link]:    https://github.com/giner/ansible-role-barman/actions/workflows/test.yml
-[release-badge]: https://github.com/giner/ansible-role-barman/actions/workflows/release.yml/badge.svg
-[release-link]:  https://github.com/giner/ansible-role-barman/actions/workflows/release.yml

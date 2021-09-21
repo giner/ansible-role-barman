@@ -132,7 +132,7 @@ None.
 
 ## Development
 
-Running all tests (requires ansible, docker, molecule and molecule-docker to be installed).
+Running all tests (requires ansible, docker, molecule, molecule-docker and ansible-lint to be installed).
 
     molecule test --all
 

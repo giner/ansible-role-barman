@@ -21,8 +21,6 @@
     loop_control:
       label: "{{ item.item }}"
   - name: Run full backup
-    vars:
-      ansible_ssh_pipelining: true
     command: barman -f json backup mypgserver --wait
     register: barman_backup_result
     become: yes
@@ -34,8 +32,6 @@
     assert:
       that: backup_status == "DONE"
   - name: Run Telegraf test
-    vars:
-      ansible_ssh_pipelining: true
     command: telegraf --config-directory /etc/telegraf/telegraf.d --test --quiet
     become: yes
     become_user: telegraf

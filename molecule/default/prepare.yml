@@ -7,6 +7,11 @@
       update_cache: yes
     become: yes
 
+  - name: "Install package 'acl'"
+    package:
+      name: acl
+    become: yes
+
   - name: "Install PostgreSQL"
     vars:
       postgresql_version: "{{ ansible_env.POSTGRESQL_VERSION | default(13) }}"
@@ -54,8 +59,6 @@
     become: yes
 
   - name: Configure users and their privileges on PostgreSQL db server
-    vars:
-      ansible_ssh_pipelining: true
     block:
     - name: Add PostgreSQL user barman_user
       postgresql_user:

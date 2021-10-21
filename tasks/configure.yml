@@ -41,8 +41,6 @@
   become: yes
 
 - name: Restart receiving wal files if configs changed
-  vars:
-    ansible_ssh_pipelining: true
   command: 'pkill -xu barman pg_receivewal'
   register: restart_receiving_wals_status
   changed_when: restart_receiving_wals_status is succeeded
@@ -65,8 +63,6 @@
   no_log: true
 
 - name: Run check for all pg servers ( barman check ... )
-  vars:
-    ansible_ssh_pipelining: true
   command: barman check "{{ pg_server_name }}" --nagios
   register: barman_check_result
   failed_when:
@@ -80,8 +76,6 @@
   become: yes
 
 - name: Create slots
-  vars:
-    ansible_ssh_pipelining: true
   command: barman receive-wal --create-slot "{{ item.pg_server_name }}"
   loop: "{{ barman_check_result.results }}"
   loop_control:
@@ -97,8 +91,6 @@
   become: yes
 
 - name: Trigger WAL archiving
-  vars:
-    ansible_ssh_pipelining: true
   command: barman switch-xlog --archive "{{ item.pg_server_name }}"
   loop: "{{ barman_check_result.results }}"
   loop_control:
@@ -110,8 +102,6 @@
   become: yes
 
 - name: Make a backup
-  vars:
-    ansible_ssh_pipelining: true
   command: barman backup --wait "{{ item.pg_server_name }}"
   loop: "{{ barman_check_result.results }}"
   loop_control:
@@ -121,8 +111,6 @@
   become: yes
 
 - name: Run check for all pg servers again ( barman check ... )
-  vars:
-    ansible_ssh_pipelining: true
   command: barman check "{{ item.pg_server_name }}" --nagios
   changed_when: false
   failed_when:

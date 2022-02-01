@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: "17 5 * * 2"
 
+defaults:                              # TODO: Remove after the fix is released, see
+  run:                                 #       https://github.com/ansible-community/molecule/pull/3409
+    working-directory: 'giner.barman'  #
+
 jobs:
   molecule:
     name: Molecule test
@@ -27,6 +31,8 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v2
+        with:                   # TODO: Remove after the fix is released, see
+          path: 'giner.barman'  #       https://github.com/ansible-community/molecule/pull/3409
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:

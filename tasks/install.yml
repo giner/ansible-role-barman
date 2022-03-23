@@ -1,16 +1,16 @@
 ---
 - name: Add Barman apt key
-  apt_key:
+  ansible.builtin.apt_key:
     url: "{{ barman_apt_key_url }}"
   become: yes
 
 - name: Add Barman repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "{{ barman_apt_repo }}"
   become: yes
 
 - name: Install Barman package
-  package:
+  ansible.builtin.package:
     name: barman
     state: "{{ barman_package_state }}"
   become: yes
@@ -18,11 +18,11 @@
 - name: Install dependencies for s3 sync
   block:
   - name: Install awscli
-    package:
+    ansible.builtin.package:
       name: awscli
     become: yes
   - name: Install barman s3 scripts
-    copy:
+    ansible.builtin.copy:
       src: "{{ item }}"
       dest: "/usr/local/bin/{{ item }}"
       mode: "0755"

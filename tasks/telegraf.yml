@@ -1,19 +1,19 @@
 - name: Populate service facts
-  service_facts:
+  ansible.builtin.service_facts:
 
 - block:
   - name: Check if Telegraf is installed
-    fail:
+    ansible.builtin.fail:
       msg: "Telegraf service doesn't exist. Make sure telegraf is installed."
     when:
     - '"telegraf" not in services'
     - '"telegraf.service" not in services'
   - name: Install jq
-    package:
+    ansible.builtin.package:
       name: jq
     become: yes
   - name: Configure sudo for Telegraf to run Barman
-    copy:
+    ansible.builtin.copy:
       src: barman-telegraf-sudo
       dest: /etc/sudoers.d/barman-telegraf-sudo
       mode: "0600"
@@ -22,7 +22,7 @@
   - name: Configure Telegraf to collect metrics from Barman
     vars:
       barman_pg_servers_with_s3_sync: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    template:
+    ansible.builtin.template:
       src: barman-telegraf.conf.j2
       dest: /etc/telegraf/telegraf.d/barman-telegraf.conf
       owner: telegraf
@@ -33,7 +33,7 @@
   when: barman_telegraf_enabled
 
 - name: Remove unmanaged config files for Telegraf
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
@@ -44,7 +44,7 @@
   when: not barman_telegraf_enabled
 
 - name: Restart Telegraf
-  service:
+  ansible.builtin.service:
     name: telegraf
     state: restarted
     use: "{{ barman_service_mgr }}"

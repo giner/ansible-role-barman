@@ -4,46 +4,46 @@
   gather_facts: false
   tasks:
   - name: Get list of pg_receivewal processes running as barman
-    command: 'pgrep -xu barman pg_receivewal'
+    ansible.builtin.command: 'pgrep -xu barman pg_receivewal'
     register: restart_receiving_wals_status
     failed_when: restart_receiving_wals_status.rc is not in [0, 1, 2]
     changed_when: false
     become: yes
   - name: Check if pg_receivewal is still running
-    assert:
+    ansible.builtin.assert:
       that: restart_receiving_wals_status.rc is in [1, 2]
   - name: Find all cron files in /etc/cron.d
-    find:
+    ansible.builtin.find:
       paths: "/etc/cron.d"
       patterns: 'barman-backup-*'
     register: barman_cron_files
     become: yes
   - name: Find all config files in /etc/barman.d
-    find:
+    ansible.builtin.find:
       paths: "/etc/barman.d"
       patterns: '*.conf'
     register: barman_all_configs
     become: yes
   - name: Find all config files in /etc/sudoers.d
-    find:
+    ansible.builtin.find:
       paths: "/etc/sudoers.d"
       patterns: 'barman-*'
     register: barman_sudoers_configs
     become: yes
   - name: Find all config files in /etc/telegraf/telegraf.d
-    find:
+    ansible.builtin.find:
       paths: "/etc/telegraf/telegraf.d"
       patterns: 'barman-*.conf'
     register: barman_telegraf_configs
     become: yes
   - name: Find all scripts in /usr/local/bin
-    find:
+    ansible.builtin.find:
       paths: "/usr/local/bin"
       patterns: 'barman-*'
     register: barman_usr_local_bin_scripts
     become: yes
   - name: Check if all files were deleted
-    fail:
+    ansible.builtin.fail:
       msg: "File {{ item }} was not deleted"
     vars:
       files_found: "{{
@@ -55,8 +55,8 @@
         }}"
     loop: "{{ files_found | map(attribute='path') | list }}"
   - name: Gather the package facts
-    package_facts:
-  - name: check if barman package was deleted
-    fail:
+    ansible.builtin.package_facts:
+  - name: Check if barman package was deleted
+    ansible.builtin.fail:
       msg: "barman package was not deleted"
     when: "'barman' in ansible_facts.packages"

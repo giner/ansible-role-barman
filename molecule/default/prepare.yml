@@ -3,12 +3,12 @@
   hosts: all
   tasks:
   - name: "Update APT cache"
-    apt:
+    ansible.builtin.apt:
       update_cache: yes
     become: yes
 
   - name: "Install package 'acl'"
-    package:
+    ansible.builtin.package:
       name: acl
     become: yes
 
@@ -17,42 +17,42 @@
       postgresql_version: "{{ ansible_env.POSTGRESQL_VERSION | default(13) }}"
     block:
     - name: "Install GPG"
-      package:
+      ansible.builtin.package:
         name: gpg
     - name: "Add PostgreSQL repository apt-key | apt"
-      apt_key:
+      ansible.builtin.apt_key:
         url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
     - name: "Add PostgreSQL repository | apt"
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main {{ postgresql_version }}"
     - name: "Install PostgreSQL package"
-      package:
+      ansible.builtin.package:
         name: "postgresql-{{ postgresql_version }}"
     - name: "Start PostgreSQL service"
-      service:
+      ansible.builtin.service:
         name: postgresql
         state: started
         use: "{{ barman_service_mgr }}"
     become: yes
 
   - name: Install psycopg2 (required by Ansible PostgreSQL modules)
-    package:
+    ansible.builtin.package:
       name: python3-psycopg2
     become: yes
 
   - name: Install Telegraf
     block:
     - name: Add InfluxDB apt key (for Telegraf)
-      apt_key:
+      ansible.builtin.apt_key:
         url: "https://repos.influxdata.com/influxdb.key"
     - name: Add InfluxDB repository (for Telegraf)
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: 'deb https://repos.influxdata.com/ubuntu {{ ansible_distribution_release }} stable'
     - name: Install Telegraf
-      package:
+      ansible.builtin.package:
         name: telegraf
     - name: Start Telegraf service
-      service:
+      ansible.builtin.service:
         name: telegraf
         state: started
         use: "{{ barman_service_mgr }}"
@@ -83,7 +83,7 @@
     become_user: postgres
 
   - name: "Start Cron (required by Barman)"
-    service:
+    ansible.builtin.service:
       name: cron
       state: started
       use: "{{ barman_service_mgr }}"

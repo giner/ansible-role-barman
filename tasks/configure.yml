@@ -10,7 +10,7 @@
   become: yes
 
 - name: Add PG servers to barman ( /etc/barman.d )
-  template:
+  ansible.builtin.template:
     src: pg-server.conf.j2
     dest: "/etc/barman.d/{{ item.name }}{{ barman_pg_config_file_suffix }}"
     owner: barman
@@ -24,7 +24,7 @@
 - name: Find unmanaged config files in /etc/barman.d
   vars:
     barman_managed_configs: "{{ barman_pg_server_names | map('regex_replace', '$', barman_pg_config_file_suffix) | join(',') }}"
-  find:
+  ansible.builtin.find:
     paths: "/etc/barman.d"
     patterns: '*.conf'
     excludes: "{{ barman_managed_configs }}"
@@ -34,14 +34,14 @@
 - name: Remove unmanaged config files from /etc/barman.d
   vars:
     config_files_to_delete: "{{ barman_unmanaged_configs.files | map(attribute='path') | list }}"
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop: "{{ config_files_to_delete }}"
   become: yes
 
 - name: Restart receiving wal files if configs changed
-  command: 'pkill -xu barman pg_receivewal'
+  ansible.builtin.command: 'pkill -xu barman pg_receivewal'
   register: restart_receiving_wals_status
   changed_when: restart_receiving_wals_status is succeeded
   failed_when: restart_receiving_wals_status.rc is not in [0, 1]
@@ -53,7 +53,7 @@
 - name: Add passwords to ~barman/.pgpass file
   vars:
     barman_pgpass_records: "{{ barman_pg_servers | selectattr('pgpass','defined') | map(attribute='pgpass') | flatten(levels=1) | sort }}"
-  template:
+  ansible.builtin.template:
     src: pgpass.j2
     dest: "~barman/.pgpass"
     owner: barman
@@ -63,7 +63,7 @@
   no_log: true
 
 - name: Run check for all pg servers ( barman check ... )
-  command: barman check "{{ pg_server_name }}" --nagios
+  ansible.builtin.command: barman check "{{ pg_server_name }}" --nagios
   register: barman_check_result
   failed_when:
   - not barman_check_result.stdout_lines[0].startswith("BARMAN")
@@ -76,7 +76,7 @@
   become: yes
 
 - name: Create slots
-  command: barman receive-wal --create-slot "{{ item.pg_server_name }}"
+  ansible.builtin.command: barman receive-wal --create-slot "{{ item.pg_server_name }}"
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
@@ -91,7 +91,7 @@
   become: yes
 
 - name: Trigger WAL archiving
-  command: barman switch-xlog --archive "{{ item.pg_server_name }}"
+  ansible.builtin.command: barman switch-xlog --archive "{{ item.pg_server_name }}"
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
@@ -102,7 +102,7 @@
   become: yes
 
 - name: Make a backup
-  command: barman backup --wait "{{ item.pg_server_name }}"
+  ansible.builtin.command: barman backup --wait "{{ item.pg_server_name }}"
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
@@ -111,7 +111,7 @@
   become: yes
 
 - name: Run check for all pg servers again ( barman check ... )
-  command: barman check "{{ item.pg_server_name }}" --nagios
+  ansible.builtin.command: barman check "{{ item.pg_server_name }}" --nagios
   changed_when: false
   failed_when:
   - not barman_check_again_result.stdout_lines[0].startswith("BARMAN OK")

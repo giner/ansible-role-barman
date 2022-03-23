@@ -1,7 +1,7 @@
 - name: Check barman_state variable
   vars:
     allowed_values: ["started", "absent", "purged"]
-  fail:
+  ansible.builtin.fail:
     msg: 'barman_state allowed values: {{ allowed_values | join(", ") }}'
   when: barman_state is not in allowed_values
 

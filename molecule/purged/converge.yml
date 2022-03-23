@@ -3,7 +3,7 @@
   hosts: all
   tasks:
   - name: Purge Barman
-    include_role:
+    ansible.builtin.include_role:
       name: "giner.barman"
     vars:
       barman_state: purged

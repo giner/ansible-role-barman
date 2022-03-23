@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
   - name: Read stats of necessary files
-    stat:
+    ansible.builtin.stat:
       path: "{{ item }}"
     register: stat_result
     loop:
@@ -14,14 +14,14 @@
     - /etc/telegraf/telegraf.d/barman-telegraf.conf
     - /etc/sudoers.d/barman-telegraf-sudo
   - name: Fail if necessary files are missing
-    fail:
+    ansible.builtin.fail:
       msg: "{{ item.item }} does not exist"
     when: not item.stat.exists
     loop: "{{ stat_result.results }}"
     loop_control:
       label: "{{ item.item }}"
   - name: Run full backup
-    command: barman -f json backup mypgserver --wait
+    ansible.builtin.command: barman -f json backup mypgserver --wait
     register: barman_backup_result
     become: yes
     become_user: barman
@@ -29,10 +29,10 @@
   - name: Backup is successful
     vars:
       backup_status: "{{ (barman_backup_result.stdout | from_json)['status'] }}"
-    assert:
+    ansible.builtin.assert:
       that: backup_status == "DONE"
   - name: Run Telegraf test
-    command: telegraf --config-directory /etc/telegraf/telegraf.d --test --quiet
+    ansible.builtin.command: telegraf --config-directory /etc/telegraf/telegraf.d --test --quiet
     become: yes
     become_user: telegraf
     changed_when: false

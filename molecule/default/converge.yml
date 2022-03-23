@@ -3,7 +3,7 @@
   hosts: all
   tasks:
   - name: Install Barman
-    include_role:
+    ansible.builtin.include_role:
       name: "giner.barman"
     vars:
       barman_name: mypgserver

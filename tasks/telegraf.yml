@@ -1,7 +1,8 @@
 - name: Populate service facts
   ansible.builtin.service_facts:
 
-- block:
+- name: Configure Telegraf
+  block:
   - name: Check if Telegraf is installed
     ansible.builtin.fail:
       msg: "Telegraf service doesn't exist. Make sure telegraf is installed."

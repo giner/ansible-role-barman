@@ -127,6 +127,11 @@ None.
                 minute: 5
               wals_cron:
                 minute: 10
+            custom:
+              job: "barman delete {{ barman_name }} oldest"
+              cron:
+                hour: 23
+                minute: 15
       roles:
       - giner.barman
 

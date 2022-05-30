@@ -80,7 +80,7 @@
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
-  when: barman_run_post_config_check and item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.replication slot:\ FAILED') | list | length > 0
+  when: barman_create_slots and item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.replication slot:\ FAILED') | list | length > 0
   register: barman_slot_result
   failed_when:
   - barman_slot_result.rc != 0
@@ -95,7 +95,7 @@
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
-  when: barman_run_post_config_check and item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.WAL archive:\ FAILED') | list | length > 0
+  when: barman_trigger_wal_archiving and item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.WAL archive:\ FAILED') | list | length > 0
   register: wall_archiving_result
   until: wall_archiving_result.rc == 0
   become_user: barman

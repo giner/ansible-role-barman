@@ -12,7 +12,7 @@
     hour:         "{{ item.backup_schedule.cron.hour         | default(omit) }}"
     minute:       "{{ item.backup_schedule.cron.minute       | default(omit) }}"
   loop: "{{ barman_pg_servers | selectattr('backup_schedule', 'defined') | list }}"
-  no_log: "{{ barman_no_log }}"
+  no_log: "{{ barman_no_log | bool }}"
   become: yes
 
 - name: Setup cron jobs for s3 sync
@@ -32,7 +32,7 @@
       hour:         "{{ item.backup_schedule.s3_sync.base_cron.hour         | default(omit) }}"
       minute:       "{{ item.backup_schedule.s3_sync.base_cron.minute       | default(omit) }}"
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    no_log: "{{ barman_no_log }}"
+    no_log: "{{ barman_no_log | bool }}"
     become: yes
   - name: Setup cron job for periodical sync of wals backup to s3
     ansible.builtin.cron:
@@ -47,7 +47,7 @@
       hour:         "{{ item.backup_schedule.s3_sync.wals_cron.hour         | default(omit) }}"
       minute:       "{{ item.backup_schedule.s3_sync.wals_cron.minute       | default(omit) }}"
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    no_log: "{{ barman_no_log }}"
+    no_log: "{{ barman_no_log | bool }}"
     become: yes
   - name: Setup cron job to collect S3 bucket stats if telegraf option is enabled
     vars:
@@ -65,7 +65,7 @@
       minute:       "{{ item.backup_schedule.s3_sync.stats_cron.minute       | default(omit) }}"
       state:        "{{ collect_stats                                        | ternary('present', 'absent') }}"
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    no_log: "{{ barman_no_log }}"
+    no_log: "{{ barman_no_log | bool }}"
     become: yes
 
 - name: Setup custom cron jobs
@@ -81,7 +81,7 @@
     hour:         "{{ item.backup_schedule.custom.cron.hour         | default(omit) }}"
     minute:       "{{ item.backup_schedule.custom.cron.minute       | default(omit) }}"
   loop: "{{ barman_pg_servers | selectattr('backup_schedule.custom', 'mapping') | list }}"
-  no_log: "{{ barman_no_log }}"
+  no_log: "{{ barman_no_log | bool }}"
   become: yes
 
 - name: Find unmanaged crontab files in /etc/cron.d

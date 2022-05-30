@@ -18,7 +18,7 @@
     mode: "0600"
   loop: "{{ barman_pg_servers }}"
   register: barman_server_configs_result
-  no_log: true
+  no_log: "{{ barman_no_log }}"
   become: yes
 
 - name: Find unmanaged config files in /etc/barman.d
@@ -60,7 +60,7 @@
     group: barman
     mode: 0600
   become: yes
-  no_log: true
+  no_log: "{{ barman_no_log }}"
 
 - name: Run check for all pg servers ( barman check ... )
   ansible.builtin.command: barman check "{{ pg_server_name }}" --nagios

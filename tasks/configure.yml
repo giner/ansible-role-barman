@@ -80,7 +80,9 @@
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
-  when: item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.replication slot:\ FAILED') | list | length > 0
+  when:
+  - barman_create_slots | bool
+  - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.replication slot:\ FAILED') | list | length > 0
   register: barman_slot_result
   failed_when:
   - barman_slot_result.rc != 0
@@ -95,18 +97,22 @@
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
-  when: item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.WAL archive:\ FAILED') | list | length > 0
+  when:
+  - barman_trigger_wal_archiving | bool
+  - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.WAL archive:\ FAILED') | list | length > 0
   register: wall_archiving_result
   until: wall_archiving_result.rc == 0
   become_user: barman
   become: yes
 
-- name: Make a backup
+- name: Make an initial backup (if no backups yet made)
   ansible.builtin.command: barman backup --wait "{{ item.pg_server_name }}"
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
-  when: item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.backup maximum\ age:\ FAILED') | list | length > 0
+  when:
+  - barman_run_backup | bool
+  - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.backup maximum\ age:\ FAILED') | list | length > 0
   become_user: barman
   become: yes
 
@@ -118,7 +124,9 @@
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
-  when: item.rc != 0
+  when:
+  - barman_run_post_config_check | bool
+  - item.rc != 0
   register: barman_check_again_result
   until: barman_check_again_result.rc == 0
   retries: 10

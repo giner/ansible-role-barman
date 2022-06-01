@@ -8,4 +8,8 @@ barman_state: started
 barman_telegraf_enabled: false
 barman_telegraf_interval: "1m"
 barman_service_mgr: "{{ omit }}"
+barman_run_backup: true
+barman_run_post_config_check: true
+barman_create_slots: true
+barman_trigger_wal_archiving: true
 barman_no_log: true

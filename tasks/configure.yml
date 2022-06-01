@@ -124,7 +124,9 @@
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
-  when: barman_run_post_config_check | bool and item.rc != 0
+  when:
+  - barman_run_post_config_check | bool
+  - item.rc != 0
   register: barman_check_again_result
   until: barman_check_again_result.rc == 0
   retries: 10

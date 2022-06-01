@@ -12,7 +12,7 @@
     hour:         "{{ item.backup_schedule.cron.hour         | default(omit) }}"
     minute:       "{{ item.backup_schedule.cron.minute       | default(omit) }}"
   loop: "{{ barman_pg_servers | selectattr('backup_schedule', 'defined') | list }}"
-  no_log: true
+  no_log: "{{ barman_no_log | bool }}"
   become: yes
 
 - name: Setup cron jobs for s3 sync
@@ -32,7 +32,7 @@
       hour:         "{{ item.backup_schedule.s3_sync.base_cron.hour         | default(omit) }}"
       minute:       "{{ item.backup_schedule.s3_sync.base_cron.minute       | default(omit) }}"
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    no_log: true
+    no_log: "{{ barman_no_log | bool }}"
     become: yes
   - name: Setup cron job for periodical sync of wals backup to s3
     ansible.builtin.cron:
@@ -47,7 +47,7 @@
       hour:         "{{ item.backup_schedule.s3_sync.wals_cron.hour         | default(omit) }}"
       minute:       "{{ item.backup_schedule.s3_sync.wals_cron.minute       | default(omit) }}"
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    no_log: true
+    no_log: "{{ barman_no_log | bool }}"
     become: yes
   - name: Setup cron job to collect S3 bucket stats if telegraf option is enabled
     vars:
@@ -65,14 +65,31 @@
       minute:       "{{ item.backup_schedule.s3_sync.stats_cron.minute       | default(omit) }}"
       state:        "{{ collect_stats                                        | ternary('present', 'absent') }}"
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    no_log: true
+    no_log: "{{ barman_no_log | bool }}"
     become: yes
+
+- name: Setup custom cron jobs
+  ansible.builtin.cron:
+    name: barman custom cron job for {{ item.name }}
+    user: barman
+    cron_file: "{{ barman_crontab_prefix }}{{ item.name }}{{ barman_crontab_suffix_custom }}"
+    job: "{{ item.backup_schedule.custom.job }}"
+    special_time: "{{ item.backup_schedule.custom.cron.special_time | default(omit) }}"
+    weekday:      "{{ item.backup_schedule.custom.cron.weekday      | default(omit) }}"
+    month:        "{{ item.backup_schedule.custom.cron.month        | default(omit) }}"
+    day:          "{{ item.backup_schedule.custom.cron.day          | default(omit) }}"
+    hour:         "{{ item.backup_schedule.custom.cron.hour         | default(omit) }}"
+    minute:       "{{ item.backup_schedule.custom.cron.minute       | default(omit) }}"
+  loop: "{{ barman_pg_servers | selectattr('backup_schedule.custom', 'mapping') | list }}"
+  no_log: "{{ barman_no_log | bool }}"
+  become: yes
 
 - name: Find unmanaged crontab files in /etc/cron.d
   vars:
     barman_managed_crontabs_backup: "{{ barman_pg_servers | selectattr('backup_schedule', 'defined') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_backup) | list }}"
     barman_managed_crontabs_s3: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_s3) | list }}"
-    barman_managed_crontabs: "{{ (barman_managed_crontabs_backup + barman_managed_crontabs_s3) | join(',') }}"
+    barman_managed_crontabs_custom: "{{ barman_pg_servers | selectattr('backup_schedule.custom', 'mapping') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_custom) | list }}"
+    barman_managed_crontabs: "{{ (barman_managed_crontabs_backup + barman_managed_crontabs_s3 + barman_managed_crontabs_custom) | join(',') }}"
   ansible.builtin.find:
     paths: "/etc/cron.d"
     patterns: '{{ barman_crontab_prefix }}*'

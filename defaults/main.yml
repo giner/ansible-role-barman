@@ -8,3 +8,4 @@ barman_state: started
 barman_telegraf_enabled: false
 barman_telegraf_interval: "1m"
 barman_service_mgr: "{{ omit }}"
+barman_no_log: true

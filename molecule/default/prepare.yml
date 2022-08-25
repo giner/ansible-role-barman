@@ -1,12 +1,25 @@
 ---
-- name: Prepare
+- name: "Prepare unprivileged user 'ansible'"
   hosts: all
+  vars:
+    ansible_user: root
   tasks:
   - name: "Update APT cache"
     ansible.builtin.apt:
       update_cache: yes
-    become: yes
+  - name: "Create user 'ansible'"
+    ansible.builtin.user:
+      name: ansible
+  - name: "Configure sudo for user 'ansible'"
+    ansible.builtin.copy:
+      content: 'ansible ALL=(ALL) NOPASSWD:ALL'
+      dest: /etc/sudoers.d/ansible
+      mode: "0400"
+      validate: /usr/sbin/visudo -csf %s
 
+- name: Prepare
+  hosts: all
+  tasks:
   - name: "Install package 'acl'"
     ansible.builtin.package:
       name: acl

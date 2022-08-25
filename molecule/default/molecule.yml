@@ -15,6 +15,7 @@ provisioner:
   inventory:
     group_vars:
       all:
+        ansible_user: ansible
         barman_user: barman
         barman_pass: BARMANPASS
         barman_streaming_user: streaming_barman

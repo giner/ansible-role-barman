@@ -52,7 +52,7 @@
 
 - name: Add passwords to ~barman/.pgpass file
   vars:
-    barman_pgpass_records: "{{ barman_pg_servers | selectattr('pgpass','defined') | map(attribute='pgpass') | flatten(levels=1) | sort }}"
+    barman_pgpass_records: "{{ barman_pg_servers | selectattr('pgpass', 'defined') | map(attribute='pgpass') | flatten(levels=1) | sort }}"
   ansible.builtin.template:
     src: pgpass.j2
     dest: "~barman/.pgpass"

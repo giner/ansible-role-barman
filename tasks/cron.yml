@@ -1,5 +1,5 @@
 ---
-- name: Setup cron job for periodical full backup
+- name: Setup cron job for periodical full backup  # noqa jinja[spacing]
   ansible.builtin.cron:
     name: barman backup cron job for {{ item.name }}
     user: barman
@@ -19,7 +19,7 @@
   vars:
     stats_name: "{{ item.backup_schedule.s3_sync.stats_name | default(item.name) }}"
   block:
-  - name: Setup cron job for periodical sync of base backup to s3
+  - name: Setup cron job for periodical sync of base backup to s3  # noqa jinja[spacing]
     ansible.builtin.cron:
       name: barman s3 sync base cron job for {{ item.name }}
       user: barman
@@ -34,7 +34,7 @@
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
     no_log: "{{ barman_no_log | bool }}"
     become: yes
-  - name: Setup cron job for periodical sync of wals backup to s3
+  - name: Setup cron job for periodical sync of wals backup to s3  # noqa jinja[spacing]
     ansible.builtin.cron:
       name: barman s3 sync wals cron job for {{ item.name }}
       user: barman
@@ -49,7 +49,7 @@
     loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
     no_log: "{{ barman_no_log | bool }}"
     become: yes
-  - name: Setup cron job to collect S3 bucket stats if telegraf option is enabled
+  - name: Setup cron job to collect S3 bucket stats if telegraf option is enabled  # noqa jinja[spacing]
     vars:
       collect_stats: "{{ barman_telegraf_enabled and item.backup_schedule.s3_sync.stats_cron is mapping }}"
     ansible.builtin.cron:
@@ -68,7 +68,7 @@
     no_log: "{{ barman_no_log | bool }}"
     become: yes
 
-- name: Setup custom cron jobs
+- name: Setup custom cron jobs  # noqa jinja[spacing]
   ansible.builtin.cron:
     name: barman custom cron job for {{ item.name }}
     user: barman

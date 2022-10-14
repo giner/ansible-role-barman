@@ -19,8 +19,8 @@ jobs:
     strategy:
       matrix:
         distro:
+          - ubuntu:22.04
           - ubuntu:20.04
-          - ubuntu:18.04
         ansible:
           - ansible
           - ansible==2.9.*

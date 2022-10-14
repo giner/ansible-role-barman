@@ -40,7 +40,8 @@ jobs:
       - name: Install test dependencies
         run: python3 -m pip install "${{ matrix.ansible }}" -Ur requirements-molecule.txt
       - name: Install ansible collections required for Ansible 2.9
-        run: ansible-galaxy collection install community.docker
+        if: matrix.ansible == 'ansible==2.9.*'
+        run: ansible-galaxy collection install community.general community.docker community.postgresql
       - name: Run Molecule tests
         run: molecule test --all
         env:

@@ -2,6 +2,7 @@
   ansible.builtin.service_facts:
 
 - name: Configure Telegraf
+  when: barman_telegraf_enabled
   block:
   - name: Check if Telegraf is installed
     ansible.builtin.fail:
@@ -31,7 +32,6 @@
       mode: "0600"
     become: yes
     register: barman_telegraf_update
-  when: barman_telegraf_enabled
 
 - name: Remove unmanaged config files for Telegraf
   ansible.builtin.file:

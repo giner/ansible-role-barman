@@ -5,4 +5,5 @@
     msg: 'barman_state allowed values: {{ allowed_values | join(", ") }}'
   when: barman_state is not in allowed_values
 
-- include_tasks: "{{ barman_state }}.yml"
+- name: Apply barman_state
+  ansible.builtin.include_tasks: "{{ barman_state }}.yml"

@@ -72,18 +72,18 @@ None.
         barman_streaming_pass: STREAMINGPASS_CHANGEME
       tasks:
       - name: Add PostgreSQL user barman_user
-        postgresql_user:
+        community.postgresql.postgresql_user:
           user: "{{ barman_user }}"
           password: "{{ barman_pass }}"
           role_attr_flags: replication
           groups: [pg_read_all_settings, pg_read_all_stats]
       - name: Add PostgreSQL user barman_streaming_user
-        postgresql_user:
+        community.postgresql.postgresql_user:
           user: "{{ barman_streaming_user }}"
           password: "{{ barman_streaming_pass }}"
           role_attr_flags: replication
       - name: GRANT EXECUTE PRIVILEGES ON FUNCTION pg_XXX TO barman_user
-        postgresql_privs:
+        community.postgresql.postgresql_privs:
           db: postgres
           privs: EXECUTE
           type: function

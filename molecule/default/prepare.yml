@@ -28,6 +28,7 @@
   - name: "Install PostgreSQL"
     vars:
       postgresql_version: "{{ ansible_env.POSTGRESQL_VERSION | default(13) }}"
+    become: yes
     block:
     - name: "Install GPG"
       ansible.builtin.package:
@@ -46,7 +47,6 @@
         name: postgresql
         state: started
         use: "{{ barman_service_mgr }}"
-    become: yes
 
   - name: Install psycopg2 (required by Ansible PostgreSQL modules)
     ansible.builtin.package:
@@ -54,6 +54,7 @@
     become: yes
 
   - name: Install Telegraf
+    become: yes
     block:
     - name: Add InfluxDB apt key (for Telegraf)
       ansible.builtin.apt_key:
@@ -69,31 +70,30 @@
         name: telegraf
         state: started
         use: "{{ barman_service_mgr }}"
-    become: yes
 
   - name: Configure users and their privileges on PostgreSQL db server
+    become: yes
+    become_user: postgres
     block:
     - name: Add PostgreSQL user barman_user
-      postgresql_user:
+      community.postgresql.postgresql_user:
         user: "{{ barman_user }}"
         password: "{{ barman_pass }}"
         role_attr_flags: replication
         groups: [pg_read_all_settings, pg_read_all_stats]
     - name: Add PostgreSQL user barman_streaming_user
-      postgresql_user:
+      community.postgresql.postgresql_user:
         user: "{{ barman_streaming_user }}"
         password: "{{ barman_streaming_pass }}"
         role_attr_flags: replication
     - name: GRANT EXECUTE PRIVILEGES ON FUNCTION pg_XXX TO barman_user
-      postgresql_privs:
+      community.postgresql.postgresql_privs:
         db: postgres
         privs: EXECUTE
         type: function
         obj: pg_start_backup(text:boolean:boolean),pg_stop_backup(),pg_stop_backup(boolean:boolean),pg_switch_wal(),pg_create_restore_point(text)
         schema: pg_catalog
         roles: "{{ barman_user }}"
-    become: yes
-    become_user: postgres
 
   - name: "Start Cron (required by Barman)"
     ansible.builtin.service:

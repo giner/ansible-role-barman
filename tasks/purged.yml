@@ -1,4 +1,5 @@
-- include_tasks: absent.yml
+- name: Apply barman_state "absent"
+  ansible.builtin.include_tasks: absent.yml
 
 - name: Purge the package and delete data directories
   ansible.builtin.apt:

@@ -1,5 +1,5 @@
 - name: Configure barman ( /etc/barman.conf )
-  ini_file:
+  community.general.ini_file:
     path: /etc/barman.conf
     section: barman
     option: "{{ item.key }}"

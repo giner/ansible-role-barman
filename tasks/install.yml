@@ -16,6 +16,7 @@
   become: yes
 
 - name: Install dependencies for s3 sync
+  when: barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list | length > 0
   block:
   - name: Install awscli
     ansible.builtin.package:
@@ -30,4 +31,3 @@
     - barman-aws-s3-sync.sh
     - barman-aws-s3-stats.sh
     become: yes
-  when: barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list | length > 0

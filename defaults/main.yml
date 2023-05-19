@@ -1,4 +1,5 @@
 ---
+barman_apt_custom_repo_enabled: true
 barman_apt_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
 barman_apt_repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
 barman_package_state: present

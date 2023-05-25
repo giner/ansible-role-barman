@@ -58,7 +58,7 @@
     block:
     - name: Add InfluxDB apt key (for Telegraf)
       ansible.builtin.apt_key:
-        url: "https://repos.influxdata.com/influxdb.key"
+        url: "https://repos.influxdata.com/influxdata-archive_compat.key"
     - name: Add InfluxDB repository (for Telegraf)
       ansible.builtin.apt_repository:
         repo: 'deb https://repos.influxdata.com/ubuntu {{ ansible_distribution_release }} stable'

@@ -1,10 +1,12 @@
 ---
 - name: Add Barman apt key
+  when: barman_apt_custom_repo_enabled
   ansible.builtin.apt_key:
     url: "{{ barman_apt_key_url }}"
   become: yes
 
 - name: Add Barman repository
+  when: barman_apt_custom_repo_enabled
   ansible.builtin.apt_repository:
     repo: "{{ barman_apt_repo }}"
   become: yes

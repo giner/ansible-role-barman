@@ -58,7 +58,7 @@
     dest: "~barman/.pgpass"
     owner: barman
     group: barman
-    mode: 0600
+    mode: "0600"
   become: yes
   no_log: "{{ barman_no_log | bool }}"
 

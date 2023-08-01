@@ -1,4 +1,4 @@
-ansible-lint==5.4.0  # TODO: Unfreeze when molecule >= 5.0.2 is released, see https://github.com/ansible-community/molecule/issues/3926 and https://github.com/ansible-community/molecule/pull/3904
+ansible-lint
 yamllint
 molecule
 molecule-plugins[docker]

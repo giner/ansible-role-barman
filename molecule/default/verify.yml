@@ -13,6 +13,8 @@
     - /etc/cron.d/barman-backup-mypgserver-s3-sync
     - /etc/telegraf/telegraf.d/barman-telegraf.conf
     - /etc/sudoers.d/barman-telegraf-sudo
+    become: yes
+    become_user: telegraf
   - name: Fail if necessary files are missing
     ansible.builtin.fail:
       msg: "{{ item.item }} does not exist"

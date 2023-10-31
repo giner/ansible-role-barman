@@ -40,9 +40,16 @@ jobs:
           path: ${{ env.WORKDIR }}  # https://github.com/ansible-community/molecule/pull/3409
 
       - name: Set up Python 3
+        if: matrix.ansible != 'ansible==2.9.*'
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+
+      - name: Set up Python 3 for Ansible 2.9
+        if: matrix.ansible == 'ansible==2.9.*'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8.x'
 
       - name: Install test dependencies
         if: matrix.ansible != 'ansible==2.9.*'

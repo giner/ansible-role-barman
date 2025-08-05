@@ -1,13 +1,14 @@
+---
 - name: Configure barman ( /etc/barman.conf )
   community.general.ini_file:
     path: /etc/barman.conf
     section: barman
     option: "{{ item.key }}"
     value: "{{ item.value }}"
-    create: no
+    create: false
   with_dict: "{{ barman_config }}"
   register: barman_global_config_result
-  become: yes
+  become: true
 
 - name: Add PG servers to barman ( /etc/barman.d )
   ansible.builtin.template:
@@ -19,17 +20,17 @@
   loop: "{{ barman_pg_servers }}"
   register: barman_server_configs_result
   no_log: "{{ barman_no_log | bool }}"
-  become: yes
+  become: true
 
 - name: Find unmanaged config files in /etc/barman.d
   vars:
     barman_managed_configs: "{{ barman_pg_server_names | map('regex_replace', '$', barman_pg_config_file_suffix) | join(',') }}"
   ansible.builtin.find:
     paths: "/etc/barman.d"
-    patterns: '*.conf'
+    patterns: "*.conf"
     excludes: "{{ barman_managed_configs }}"
   register: barman_unmanaged_configs
-  become: yes
+  become: true
 
 - name: Remove unmanaged config files from /etc/barman.d
   vars:
@@ -38,17 +39,16 @@
     path: "{{ item }}"
     state: absent
   loop: "{{ config_files_to_delete }}"
-  become: yes
+  become: true
 
 - name: Restart receiving wal files if configs changed
-  ansible.builtin.command: 'pkill -xu barman pg_receivewal'
+  ansible.builtin.command: "pkill -xu barman pg_receivewal"
   register: restart_receiving_wals_status
   changed_when: restart_receiving_wals_status is succeeded
   failed_when: restart_receiving_wals_status.rc is not in [0, 1]
-  when: barman_global_config_result is changed or
-        barman_server_configs_result is changed
+  when: barman_global_config_result is changed or barman_server_configs_result is changed
   become_user: barman
-  become: yes
+  become: true
 
 - name: Add passwords to ~barman/.pgpass file
   vars:
@@ -59,21 +59,21 @@
     owner: barman
     group: barman
     mode: "0600"
-  become: yes
+  become: true
   no_log: "{{ barman_no_log | bool }}"
 
 - name: Run check for all pg servers ( barman check ... )
   ansible.builtin.command: barman check "{{ pg_server_name }}" --nagios
   register: barman_check_result
   failed_when:
-  - not barman_check_result.stdout_lines[0].startswith("BARMAN")
+    - not barman_check_result.stdout_lines[0].startswith("BARMAN")
   changed_when:
-  - not barman_check_result.stdout_lines[0].startswith("BARMAN OK")
+    - not barman_check_result.stdout_lines[0].startswith("BARMAN OK")
   loop: "{{ barman_pg_server_names }}"
   loop_control:
     loop_var: pg_server_name
   become_user: barman
-  become: yes
+  become: true
 
 - name: Create slots
   ansible.builtin.command: barman receive-wal --create-slot "{{ item.pg_server_name }}"
@@ -81,55 +81,57 @@
   loop_control:
     label: "{{ item.pg_server_name }}"
   when:
-  - barman_create_slots | bool
-  - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.replication slot:\ FAILED') | list | length > 0
+    - barman_create_slots | bool
+    - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.replication slot:\ FAILED') | list | length > 0
   register: barman_slot_result
   failed_when:
-  - barman_slot_result.rc != 0
-  - barman_slot_result.stderr_lines is not regex("Replication slot [^ ]+ already exists")
+    - barman_slot_result.rc != 0
+    - barman_slot_result.stderr_lines is not regex("Replication slot [^ ]+ already exists")
   changed_when:
-  - barman_slot_result.stderr_lines is not regex("Replication slot [^ ]+ already exists")
+    - barman_slot_result.stderr_lines is not regex("Replication slot [^ ]+ already exists")
   become_user: barman
-  become: yes
+  become: true
 
 - name: Trigger WAL archiving
   ansible.builtin.command: barman switch-xlog --archive "{{ item.pg_server_name }}"
+  changed_when: true
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
   when:
-  - barman_trigger_wal_archiving | bool
-  - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.WAL archive:\ FAILED') | list | length > 0
+    - barman_trigger_wal_archiving | bool
+    - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.WAL archive:\ FAILED') | list | length > 0
   register: wall_archiving_result
   until: wall_archiving_result.rc == 0
   become_user: barman
-  become: yes
+  become: true
 
 - name: Make an initial backup (if no backups yet made)
   ansible.builtin.command: barman backup --wait "{{ item.pg_server_name }}"
+  changed_when: true
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
   when:
-  - barman_run_backup | bool
-  - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.backup maximum\ age:\ FAILED') | list | length > 0
+    - barman_run_backup | bool
+    - item.stdout_lines | select('match', '^' ~ item.pg_server_name ~ '\.backup maximum\ age:\ FAILED') | list | length > 0
   become_user: barman
-  become: yes
+  become: true
 
 - name: Run check for all pg servers again ( barman check ... )
   ansible.builtin.command: barman check "{{ item.pg_server_name }}" --nagios
   changed_when: false
   failed_when:
-  - not barman_check_again_result.stdout_lines[0].startswith("BARMAN OK")
+    - not barman_check_again_result.stdout_lines[0].startswith("BARMAN OK")
   loop: "{{ barman_check_result.results }}"
   loop_control:
     label: "{{ item.pg_server_name }}"
   when:
-  - barman_run_post_config_check | bool
-  - item.rc != 0
+    - barman_run_post_config_check | bool
+    - item.rc != 0
   register: barman_check_again_result
   until: barman_check_again_result.rc == 0
   retries: 10
   delay: 15
   become_user: barman
-  become: yes
+  become: true

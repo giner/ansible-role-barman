@@ -2,44 +2,44 @@
 - name: Converge
   hosts: all
   tasks:
-  - name: Install Barman
-    ansible.builtin.include_role:
-      name: "giner.barman"
-    vars:
-      barman_name: mypgserver
-      barman_pg_hosts: 127.0.0.1
-      barman_pg_ports: 5432
-      barman_telegraf_enabled: true
-      barman_pg_servers:
-      - name: "{{ barman_name }}"
-        params:
-        - description: "PostgreSQL Database (Streaming-Only)"
-        - conninfo: 'host={{ barman_pg_hosts }} port={{ barman_pg_ports }} user={{ barman_user }} dbname=postgres'
-        - streaming_conninfo: 'host={{ barman_pg_hosts }} port={{ barman_pg_ports }} user={{ barman_streaming_user }}'
-        - backup_method: "postgres"
-        - streaming_archiver: "on"
-        - slot_name: "barman"
-        - create_slot: "auto"
-        - retention_policy: "recovery window of 31 days"
-        - last_backup_maximum_age: 1 days
-        pgpass:
-        - "*:*:postgres:{{ barman_user }}:{{ barman_pass }}"
-        - "*:*:replication:{{ barman_streaming_user }}:{{ barman_streaming_pass }}"
-        backup_schedule:
-          cron:
-            hour: 21
-            minute: 5
-          s3_sync:
-            src: "{{ barman_config['barman_home'] | default('/var/lib/barman') }}/{{ barman_name }}"
-            dst: "s3://db-backup"
-            base_max_age: "{{ 2 * 24 * 60 * 60 }}"
-            base_cron:
-              hour: 22
-              minute: 5
-            wals_max_age: "{{ 60 * 60 }}"
-            wals_cron:
-              minute: 10
-            stats_max_age: "{{ 2 * 24 * 60 * 60 }}"
-            stats_cron:
-              hour: 23
-              minute: 10
+    - name: Install Barman
+      ansible.builtin.include_role:
+        name: "giner.barman"
+      vars:
+        barman_name: mypgserver
+        barman_pg_hosts: 127.0.0.1
+        barman_pg_ports: 5432
+        barman_telegraf_enabled: true
+        barman_pg_servers:
+          - name: "{{ barman_name }}"
+            params:
+              - description: "PostgreSQL Database (Streaming-Only)"
+              - conninfo: "host={{ barman_pg_hosts }} port={{ barman_pg_ports }} user={{ barman_user }} dbname=postgres"
+              - streaming_conninfo: "host={{ barman_pg_hosts }} port={{ barman_pg_ports }} user={{ barman_streaming_user }}"
+              - backup_method: "postgres"
+              - streaming_archiver: "on"
+              - slot_name: "barman"
+              - create_slot: "auto"
+              - retention_policy: "recovery window of 31 days"
+              - last_backup_maximum_age: 1 days
+            pgpass:
+              - "*:*:postgres:{{ barman_user }}:{{ barman_pass }}"
+              - "*:*:replication:{{ barman_streaming_user }}:{{ barman_streaming_pass }}"
+            backup_schedule:
+              cron:
+                hour: 21
+                minute: 5
+              s3_sync:
+                src: "{{ barman_config['barman_home'] | default('/var/lib/barman') }}/{{ barman_name }}"
+                dst: "s3://db-backup"
+                base_max_age: "{{ 2 * 24 * 60 * 60 }}"
+                base_cron:
+                  hour: 22
+                  minute: 5
+                wals_max_age: "{{ 60 * 60 }}"
+                wals_cron:
+                  minute: 10
+                stats_max_age: "{{ 2 * 24 * 60 * 60 }}"
+                stats_cron:
+                  hour: 23
+                  minute: 10

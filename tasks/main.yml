@@ -1,3 +1,4 @@
+---
 - name: Check barman_state variable
   vars:
     allowed_values: ["started", "absent", "purged"]

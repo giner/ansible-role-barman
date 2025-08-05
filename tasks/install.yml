@@ -4,19 +4,20 @@
   ansible.builtin.get_url:
     url: "{{ barman_apt_key_url }}"
     dest: /etc/apt/keyrings/apt.postgresql.org.asc
-  become: yes
+    mode: "0644"
+  become: true
 
 - name: Add Barman repository
   when: barman_apt_custom_repo_enabled
   ansible.builtin.apt_repository:
     repo: "{{ barman_apt_repo }}"
-  become: yes
+  become: true
 
 - name: Install Barman package
   ansible.builtin.package:
     name: barman
     state: "{{ barman_package_state }}"
-  become: yes
+  become: true
 
 - name: Install dependencies for s3 sync
   when: barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list | length > 0
@@ -26,16 +27,16 @@
     # - AWS CLI can be safely removed when Barman is uninstalled
     # - We can support Ubuntu 24.04 which doesn't have AWS CLI in the default
     #   repositories
-  - name: Install awscli
-    ansible.builtin.package:
-      name: awscli
-    become: yes
-  - name: Install barman s3 scripts
-    ansible.builtin.copy:
-      src: "{{ item }}"
-      dest: "/usr/local/bin/{{ item }}"
-      mode: "0755"
-    loop:
-    - barman-aws-s3-sync.sh
-    - barman-aws-s3-stats.sh
-    become: yes
+    - name: Install awscli
+      ansible.builtin.package:
+        name: awscli
+      become: true
+    - name: Install barman s3 scripts
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/usr/local/bin/{{ item }}"
+        mode: "0755"
+      loop:
+        - barman-aws-s3-sync.sh
+        - barman-aws-s3-stats.sh
+      become: true

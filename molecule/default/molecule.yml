@@ -20,6 +20,6 @@ provisioner:
         barman_pass: BARMANPASS
         barman_streaming_user: streaming_barman
         barman_streaming_pass: STREAMINGPASS
-        barman_service_mgr: sysv  # Workaround for https://github.com/ansible/ansible/issues/74480
+        barman_service_mgr: sysv # Workaround for https://github.com/ansible/ansible/issues/74480
 verifier:
   name: ansible

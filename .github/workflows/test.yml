@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         distro:
-          #- ubuntu:24.04  # Fails tests due to absense of awscli in the default repositories
+          # - ubuntu:24.04  # Fails tests due to absense of awscli in the default repositories
           - ubuntu:22.04
         ansible:
           - ansible
@@ -33,7 +33,7 @@ jobs:
       - name: Set up Python 3
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install test dependencies
         run: python3 -m pip install "${{ matrix.ansible }}" -Ur requirements-molecule.txt
@@ -41,7 +41,7 @@ jobs:
       - name: Run Molecule tests
         run: molecule test --all
         env:
-          PY_COLORS: '1'  # for molecule
-          ANSIBLE_FORCE_COLOR: 'True'
-          MOLECULE_DISTRO: '${{ matrix.distro }}'
-          POSTGRESQL_VERSION: '${{ matrix.postgresql }}'
+          PY_COLORS: "1" # for molecule
+          ANSIBLE_FORCE_COLOR: "True"
+          MOLECULE_DISTRO: "${{ matrix.distro }}"
+          POSTGRESQL_VERSION: "${{ matrix.postgresql }}"

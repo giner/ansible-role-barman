@@ -1,6 +1,6 @@
 ---
 barman_pg_server_names: "{{ barman_pg_servers | map(attribute='name') | list }}"
-barman_pg_server_name_pattern: '^[a-z0-9_-]+$'
+barman_pg_server_name_pattern: "^[a-z0-9_-]+$"
 barman_s3_sync_stats_name_pattern: "{{ barman_pg_server_name_pattern }}"
 barman_pg_config_file_suffix: "-server.conf"
 barman_crontab_prefix: "barman-backup-"

@@ -1,24 +1,26 @@
 ---
 - name: Make sure server names match pattern
   ansible.builtin.fail:
-    msg: 'Server names must match /{{ barman_pg_server_name_pattern }}/'
+    msg: "Server names must match /{{ barman_pg_server_name_pattern }}/"
   when: (barman_pg_servers | selectattr('name', 'regex', barman_pg_server_name_pattern) | list | length) != (barman_pg_servers | length)
 
 - name: Make sure server names are unique
   ansible.builtin.fail:
-    msg: 'Server names must be unique'
+    msg: "Server names must be unique"
   when: (barman_pg_servers | map(attribute='name') | unique | list | length) != (barman_pg_servers | length)
 
 - name: Make sure s3 sync stats names match pattern
   vars:
-    s3_sync_stats_names: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync.stats_name', 'defined') | map(attribute='backup_schedule.s3_sync.stats_name') | list }}"
+    s3_sync_stats_names: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync.stats_name', 'defined') |
+      map(attribute='backup_schedule.s3_sync.stats_name') | list }}"
   ansible.builtin.fail:
-    msg: 'S3 sync stats names must match /{{ barman_s3_sync_stats_name_pattern }}/'
+    msg: "S3 sync stats names must match /{{ barman_s3_sync_stats_name_pattern }}/"
   when: (s3_sync_stats_names | select('regex', barman_s3_sync_stats_name_pattern) | list | length) != (s3_sync_stats_names | length)
 
 - name: Make sure s3 sync stats names are unique
   vars:
-    s3_sync_stats_names: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync.stats_name', 'defined') | map(attribute='backup_schedule.s3_sync.stats_name') | list }}"
+    s3_sync_stats_names: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync.stats_name', 'defined') |
+      map(attribute='backup_schedule.s3_sync.stats_name') | list }}"
   ansible.builtin.fail:
-    msg: 'S3 sync stats names must be unique'
+    msg: "S3 sync stats names must be unique"
   when: (s3_sync_stats_names | unique | list | length) != (s3_sync_stats_names | length)

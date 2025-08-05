@@ -6,10 +6,6 @@ driver:
 platforms:
   - name: instance
     image: ${MOLECULE_DISTRO:-ubuntu:22.04}
-lint: |
-  set -e
-  yamllint .
-  ansible-lint
 provisioner:
   name: ansible
   inventory:

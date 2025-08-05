@@ -141,6 +141,10 @@ Install test dependencies:
 
     python3 -m pip install ansible -Ur requirements-molecule.txt
 
+Linting:
+
+    ansible-lint
+
 Run all tests (requires docker to be installed):
 
     molecule test --all

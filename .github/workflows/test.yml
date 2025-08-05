@@ -38,6 +38,9 @@ jobs:
       - name: Install test dependencies
         run: python3 -m pip install "${{ matrix.ansible }}" -Ur requirements-molecule.txt
 
+      - name: Run ansible-lint
+        run: ansible-lint
+
       - name: Run Molecule tests
         run: molecule test --all
         env:

@@ -34,11 +34,12 @@
       ansible.builtin.package:
         name: gpg
     - name: "Add PostgreSQL repository apt-key | apt"
-      ansible.builtin.apt_key:
+      ansible.builtin.get_url:
         url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+        dest: /etc/apt/keyrings/apt.postgresql.org.asc
     - name: "Add PostgreSQL repository | apt"
       ansible.builtin.apt_repository:
-        repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main {{ postgresql_version }}"
+        repo: "deb [signed-by=/etc/apt/keyrings/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main {{ postgresql_version }}"
     - name: "Install PostgreSQL package"
       ansible.builtin.package:
         name: "postgresql-{{ postgresql_version }}"
@@ -57,11 +58,12 @@
     become: yes
     block:
     - name: Add InfluxDB apt key (for Telegraf)
-      ansible.builtin.apt_key:
-        url: "https://repos.influxdata.com/influxdata-archive_compat.key"
+      ansible.builtin.get_url:
+        url: "https://repos.influxdata.com/influxdata-archive.key"
+        dest: /etc/apt/keyrings/influxdata-archive.key
     - name: Add InfluxDB repository (for Telegraf)
       ansible.builtin.apt_repository:
-        repo: 'deb https://repos.influxdata.com/ubuntu {{ ansible_distribution_release }} stable'
+        repo: 'deb [signed-by=/etc/apt/keyrings/influxdata-archive.key] https://repos.influxdata.com/debian stable main'
     - name: Install Telegraf
       ansible.builtin.package:
         name: telegraf

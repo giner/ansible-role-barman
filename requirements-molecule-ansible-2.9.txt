@@ -1,5 +1,0 @@
-ansible-lint==5.4.0
-yamllint
-molecule==3.0.8
-molecule-docker
-pyyaml!=5.4.*,!=6.0.0  # These versions of pyyaml don't work with Cython 3, see https://github.com/yaml/pyyaml/issues/724

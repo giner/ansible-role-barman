@@ -1,8 +1,9 @@
 ---
 - name: Add Barman apt key
   when: barman_apt_custom_repo_enabled
-  ansible.builtin.apt_key:
+  ansible.builtin.get_url:
     url: "{{ barman_apt_key_url }}"
+    dest: /etc/apt/keyrings/apt.postgresql.org.asc
   become: yes
 
 - name: Add Barman repository
@@ -20,6 +21,11 @@
 - name: Install dependencies for s3 sync
   when: barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list | length > 0
   block:
+    # TODO: Replace global installation of AWS CLI by a dedicated one
+    # specifically for Barman. This will solve two problems:
+    # - AWS CLI can be safely removed when Barman is uninstalled
+    # - We can support Ubuntu 24.04 which doesn't have AWS CLI in the default
+    #   repositories
   - name: Install awscli
     ansible.builtin.package:
       name: awscli

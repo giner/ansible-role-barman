@@ -16,50 +16,27 @@ jobs:
     strategy:
       matrix:
         distro:
+          #- ubuntu:24.04  # Fails tests due to absense of awscli in the default repositories
           - ubuntu:22.04
-          - ubuntu:20.04
         ansible:
           - ansible
-          - ansible==2.9.*
+          - ansible==11.*
         postgresql:
-          - 13
-          - 14
           - 15
-
-    env:
-      WORKDIR: ${{ matrix.ansible == 'ansible==2.9.*' && 'giner.barman' }}
-
-    defaults:
-      run:
-        working-directory: ${{ env.WORKDIR }}  # https://github.com/ansible-community/molecule/pull/3409
+          - 16
+          - 17
 
     steps:
       - name: Check out
         uses: actions/checkout@v3
-        with:
-          path: ${{ env.WORKDIR }}  # https://github.com/ansible-community/molecule/pull/3409
 
       - name: Set up Python 3
-        if: matrix.ansible != 'ansible==2.9.*'
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      - name: Set up Python 3 for Ansible 2.9
-        if: matrix.ansible == 'ansible==2.9.*'
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8.x'
-
       - name: Install test dependencies
-        if: matrix.ansible != 'ansible==2.9.*'
         run: python3 -m pip install "${{ matrix.ansible }}" -Ur requirements-molecule.txt
-
-      - name: Install test dependencies for Ansible 2.9
-        if: matrix.ansible == 'ansible==2.9.*'
-        run: |
-          python3 -m pip install "${{ matrix.ansible }}" -Ur requirements-molecule-ansible-2.9.txt
-          ansible-galaxy collection install community.general community.docker community.postgresql
 
       - name: Run Molecule tests
         run: molecule test --all

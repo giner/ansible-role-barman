@@ -1,3 +1,4 @@
+---
 - name: Remove Telegraf configs
   vars:
     barman_telegraf_enabled: false
@@ -6,9 +7,9 @@
 - name: Find all crontab files in /etc/cron.d
   ansible.builtin.find:
     paths: "/etc/cron.d"
-    patterns: '{{ barman_crontab_prefix }}*'
+    patterns: "{{ barman_crontab_prefix }}*"
   register: barman_all_crontabs
-  become: yes
+  become: true
 
 - name: Remove all crontab files from /etc/cron.d
   vars:
@@ -17,14 +18,14 @@
     path: "{{ item }}"
     state: absent
   loop: "{{ crontab_files_to_delete }}"
-  become: yes
+  become: true
 
 - name: Find all config files in /etc/barman.d
   ansible.builtin.find:
     paths: "/etc/barman.d"
-    patterns: '*.conf'
+    patterns: "*.conf"
   register: barman_all_configs
-  become: yes
+  become: true
 
 - name: Remove all config files from /etc/barman.d
   vars:
@@ -33,38 +34,38 @@
     path: "{{ item }}"
     state: absent
   loop: "{{ config_files_to_delete }}"
-  become: yes
+  become: true
 
 - name: Stop receiving wal files
-  ansible.builtin.command: 'pkill -xu barman pg_receivewal'
+  ansible.builtin.command: "pkill -xu barman pg_receivewal"
   register: stop_receiving_wals_status
   changed_when: stop_receiving_wals_status is succeeded
   failed_when: stop_receiving_wals_status.rc is not in [0, 1, 2]
-  become: yes
+  become: true
 
 - name: Remove ~barman/.pgpass
   ansible.builtin.file:
     path: "~barman/.pgpass"
     state: absent
-  become: yes
+  become: true
 
 - name: Uninstall Barman package
   ansible.builtin.package:
     name: barman
     state: absent
-  become: yes
+  become: true
 
 - name: Remove Barman repository
   ansible.builtin.apt_repository:
     repo: "{{ barman_apt_repo }}"
     state: absent
-  become: yes
+  become: true
 
 - name: Remove barman s3 scripts
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
-  - /usr/local/bin/barman-aws-s3-sync.sh
-  - /usr/local/bin/barman-aws-s3-stats.sh
-  become: yes
+    - /usr/local/bin/barman-aws-s3-sync.sh
+    - /usr/local/bin/barman-aws-s3-stats.sh
+  become: true

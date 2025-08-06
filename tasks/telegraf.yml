@@ -1,46 +1,47 @@
+---
 - name: Populate service facts
   ansible.builtin.service_facts:
 
 - name: Configure Telegraf
   when: barman_telegraf_enabled
   block:
-  - name: Check if Telegraf is installed
-    ansible.builtin.fail:
-      msg: "Telegraf service doesn't exist. Make sure telegraf is installed."
-    when:
-    - '"telegraf" not in services'
-    - '"telegraf.service" not in services'
-  - name: Install jq
-    ansible.builtin.package:
-      name: jq
-    become: yes
-  - name: Configure sudo for Telegraf to run Barman
-    ansible.builtin.copy:
-      src: barman-telegraf-sudo
-      dest: /etc/sudoers.d/barman-telegraf-sudo
-      mode: "0600"
-      validate: /usr/sbin/visudo -csf %s
-    become: yes
-  - name: Configure Telegraf to collect metrics from Barman
-    vars:
-      barman_pg_servers_with_s3_sync: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
-    ansible.builtin.template:
-      src: barman-telegraf.conf.j2
-      dest: /etc/telegraf/telegraf.d/barman-telegraf.conf
-      owner: telegraf
-      group: telegraf
-      mode: "0600"
-    become: yes
-    register: barman_telegraf_update
+    - name: Check if Telegraf is installed
+      ansible.builtin.fail:
+        msg: "Telegraf service doesn't exist. Make sure telegraf is installed."
+      when:
+        - '"telegraf" not in services'
+        - '"telegraf.service" not in services'
+    - name: Install jq
+      ansible.builtin.package:
+        name: jq
+      become: true
+    - name: Configure sudo for Telegraf to run Barman
+      ansible.builtin.copy:
+        src: barman-telegraf-sudo
+        dest: /etc/sudoers.d/barman-telegraf-sudo
+        mode: "0600"
+        validate: /usr/sbin/visudo -csf %s
+      become: true
+    - name: Configure Telegraf to collect metrics from Barman
+      vars:
+        barman_pg_servers_with_s3_sync: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
+      ansible.builtin.template:
+        src: barman-telegraf.conf.j2
+        dest: /etc/telegraf/telegraf.d/barman-telegraf.conf
+        owner: telegraf
+        group: telegraf
+        mode: "0600"
+      become: true
+      register: barman_telegraf_update
 
 - name: Remove unmanaged config files for Telegraf
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
-  - /etc/telegraf/telegraf.d/barman-telegraf.conf
-  - /etc/sudoers.d/barman-telegraf-sudo
-  become: yes
+    - /etc/telegraf/telegraf.d/barman-telegraf.conf
+    - /etc/sudoers.d/barman-telegraf-sudo
+  become: true
   register: barman_telegraf_remove
   when: not barman_telegraf_enabled
 
@@ -49,7 +50,7 @@
     name: telegraf
     state: restarted
     use: "{{ barman_service_mgr }}"
-  become: yes
+  become: true
   when:
-  - barman_telegraf_update is changed or barman_telegraf_remove is changed
-  - '"telegraf" in services or "telegraf.service" in services'
+    - barman_telegraf_update is changed or barman_telegraf_remove is changed
+    - '"telegraf" in services or "telegraf.service" in services'

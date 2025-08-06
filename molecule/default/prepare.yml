@@ -4,105 +4,108 @@
   vars:
     ansible_user: root
   tasks:
-  - name: "Update APT cache"
-    ansible.builtin.apt:
-      update_cache: yes
-  - name: "Create user 'ansible'"
-    ansible.builtin.user:
-      name: ansible
-  - name: "Configure sudo for user 'ansible'"
-    ansible.builtin.copy:
-      content: 'ansible ALL=(ALL) NOPASSWD:ALL'
-      dest: /etc/sudoers.d/ansible
-      mode: "0400"
-      validate: /usr/sbin/visudo -csf %s
+    - name: "Update APT cache"
+      ansible.builtin.apt:
+        update_cache: true
+    - name: "Create user 'ansible'"
+      ansible.builtin.user:
+        name: ansible
+    - name: "Configure sudo for user 'ansible'"
+      ansible.builtin.copy:
+        content: "ansible ALL=(ALL) NOPASSWD:ALL"
+        dest: /etc/sudoers.d/ansible
+        mode: "0400"
+        validate: /usr/sbin/visudo -csf %s
 
 - name: Prepare
   hosts: all
   tasks:
-  - name: "Install package 'acl'"
-    ansible.builtin.package:
-      name: acl
-    become: yes
-
-  - name: "Install PostgreSQL"
-    vars:
-      postgresql_version: "{{ ansible_env.POSTGRESQL_VERSION | default(13) }}"
-    become: yes
-    block:
-    - name: "Install GPG"
+    - name: "Install package 'acl'"
       ansible.builtin.package:
-        name: gpg
-    - name: "Add PostgreSQL repository apt-key | apt"
-      ansible.builtin.get_url:
-        url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
-        dest: /etc/apt/keyrings/apt.postgresql.org.asc
-    - name: "Add PostgreSQL repository | apt"
-      ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main {{ postgresql_version }}"
-    - name: "Install PostgreSQL package"
+        name: acl
+      become: true
+
+    - name: "Install PostgreSQL"
+      vars:
+        postgresql_version: "{{ ansible_env.POSTGRESQL_VERSION | default(13) }}"
+      become: true
+      block:
+        - name: "Install GPG"
+          ansible.builtin.package:
+            name: gpg
+        - name: "Add PostgreSQL repository apt-key | apt"
+          ansible.builtin.get_url:
+            url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+            dest: /etc/apt/keyrings/apt.postgresql.org.asc
+            mode: "0644"
+        - name: "Add PostgreSQL repository | apt"
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/etc/apt/keyrings/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg
+              main {{ postgresql_version }}"
+        - name: "Install PostgreSQL package"
+          ansible.builtin.package:
+            name: "postgresql-{{ postgresql_version }}"
+        - name: "Start PostgreSQL service"
+          ansible.builtin.service:
+            name: postgresql
+            state: started
+            use: "{{ barman_service_mgr }}"
+
+    - name: Install psycopg2 (required by Ansible PostgreSQL modules)
       ansible.builtin.package:
-        name: "postgresql-{{ postgresql_version }}"
-    - name: "Start PostgreSQL service"
-      ansible.builtin.service:
-        name: postgresql
-        state: started
-        use: "{{ barman_service_mgr }}"
+        name: python3-psycopg2
+      become: true
 
-  - name: Install psycopg2 (required by Ansible PostgreSQL modules)
-    ansible.builtin.package:
-      name: python3-psycopg2
-    become: yes
-
-  - name: Install Telegraf
-    become: yes
-    block:
-    - name: Add InfluxDB apt key (for Telegraf)
-      ansible.builtin.get_url:
-        url: "https://repos.influxdata.com/influxdata-archive.key"
-        dest: /etc/apt/keyrings/influxdata-archive.key
-    - name: Add InfluxDB repository (for Telegraf)
-      ansible.builtin.apt_repository:
-        repo: 'deb [signed-by=/etc/apt/keyrings/influxdata-archive.key] https://repos.influxdata.com/debian stable main'
     - name: Install Telegraf
-      ansible.builtin.package:
-        name: telegraf
-    - name: Start Telegraf service
+      become: true
+      block:
+        - name: Add InfluxDB apt key (for Telegraf)
+          ansible.builtin.get_url:
+            url: "https://repos.influxdata.com/influxdata-archive.key"
+            dest: /etc/apt/keyrings/influxdata-archive.key
+            mode: "0644"
+        - name: Add InfluxDB repository (for Telegraf)
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/etc/apt/keyrings/influxdata-archive.key] https://repos.influxdata.com/debian stable main"
+        - name: Install Telegraf
+          ansible.builtin.package:
+            name: telegraf
+        - name: Start Telegraf service
+          ansible.builtin.service:
+            name: telegraf
+            state: started
+            use: "{{ barman_service_mgr }}"
+
+    - name: Configure users and their privileges on PostgreSQL db server
+      become: true
+      become_user: postgres
+      block:
+        - name: Add PostgreSQL user barman_user
+          community.postgresql.postgresql_user:
+            user: "{{ barman_user }}"
+            password: "{{ barman_pass }}"
+            role_attr_flags: replication
+        - name: Add barman_user to groups
+          community.postgresql.postgresql_membership:
+            target_role: "{{ barman_user }}"
+            groups: [pg_read_all_settings, pg_read_all_stats]
+        - name: Add PostgreSQL user barman_streaming_user
+          community.postgresql.postgresql_user:
+            user: "{{ barman_streaming_user }}"
+            password: "{{ barman_streaming_pass }}"
+            role_attr_flags: replication
+        - name: GRANT EXECUTE PRIVILEGES ON FUNCTION pg_XXX TO barman_user
+          community.postgresql.postgresql_privs:
+            login_db: postgres
+            privs: EXECUTE
+            type: function
+            obj: pg_start_backup(text:boolean:boolean),pg_stop_backup(),pg_stop_backup(boolean:boolean),pg_switch_wal(),pg_create_restore_point(text)
+            schema: pg_catalog
+            roles: "{{ barman_user }}"
+
+    - name: "Start Cron (required by Barman)"
       ansible.builtin.service:
-        name: telegraf
+        name: cron
         state: started
         use: "{{ barman_service_mgr }}"
-
-  - name: Configure users and their privileges on PostgreSQL db server
-    become: yes
-    become_user: postgres
-    block:
-    - name: Add PostgreSQL user barman_user
-      community.postgresql.postgresql_user:
-        user: "{{ barman_user }}"
-        password: "{{ barman_pass }}"
-        role_attr_flags: replication
-    - name: Add barman_user to groups
-      community.postgresql.postgresql_membership:
-        target_role: "{{ barman_user }}"
-        groups: [pg_read_all_settings, pg_read_all_stats]
-    - name: Add PostgreSQL user barman_streaming_user
-      community.postgresql.postgresql_user:
-        user: "{{ barman_streaming_user }}"
-        password: "{{ barman_streaming_pass }}"
-        role_attr_flags: replication
-    - name: GRANT EXECUTE PRIVILEGES ON FUNCTION pg_XXX TO barman_user
-      community.postgresql.postgresql_privs:
-        db: postgres
-        privs: EXECUTE
-        type: function
-        obj: pg_start_backup(text:boolean:boolean),pg_stop_backup(),pg_stop_backup(boolean:boolean),pg_switch_wal(),pg_create_restore_point(text)
-        schema: pg_catalog
-        roles: "{{ barman_user }}"
-
-  - name: "Start Cron (required by Barman)"
-    ansible.builtin.service:
-      name: cron
-      state: started
-      use: "{{ barman_service_mgr }}"
-    become: yes
+      become: true

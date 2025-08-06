@@ -1,3 +1,4 @@
+---
 - name: Apply barman_state "absent"
   ansible.builtin.include_tasks: absent.yml
 
@@ -5,5 +6,5 @@
   ansible.builtin.apt:
     name: barman
     state: absent
-    purge: yes
-  become: yes
+    purge: true
+  become: true

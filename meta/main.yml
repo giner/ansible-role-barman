@@ -1,3 +1,4 @@
+---
 galaxy_info:
   role_name: barman
   author: giner
@@ -5,10 +6,10 @@ galaxy_info:
   license: Apache-2.0
   min_ansible_version: "11.0"
   platforms:
-  - name: Ubuntu
-    versions:
-    - all
+    - name: Ubuntu
+      versions:
+        - all
   galaxy_tags:
-  - barman
-  - postgresql
-  - backup
+    - barman
+    - postgresql
+    - backup

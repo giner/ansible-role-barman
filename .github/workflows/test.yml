@@ -20,7 +20,7 @@ jobs:
           - ubuntu:22.04
         ansible:
           - ansible
-          - ansible==11.*
+          - ansible==13.*
         postgresql:
           - 15
           - 16

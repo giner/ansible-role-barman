@@ -4,7 +4,7 @@ galaxy_info:
   author: giner
   description: "Install and configure Barman on Linux with optional: metrics collection (telegraf), regular snapshots (cron) and uploading to S3 (cron)"
   license: Apache-2.0
-  min_ansible_version: "11.0"
+  min_ansible_version: "13.0"
   platforms:
     - name: Ubuntu
       versions:

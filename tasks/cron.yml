@@ -31,7 +31,7 @@
         day: "{{ item.backup_schedule.s3_sync.base_cron.day | default(omit) }}"
         hour: "{{ item.backup_schedule.s3_sync.base_cron.hour | default(omit) }}"
         minute: "{{ item.backup_schedule.s3_sync.base_cron.minute | default(omit) }}"
-      loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
+      loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'defined') | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
       no_log: "{{ barman_no_log | bool }}"
       become: true
     - name: Setup cron job for periodical sync of wals backup to s3 # noqa jinja[spacing]
@@ -46,7 +46,7 @@
         day: "{{ item.backup_schedule.s3_sync.wals_cron.day | default(omit) }}"
         hour: "{{ item.backup_schedule.s3_sync.wals_cron.hour | default(omit) }}"
         minute: "{{ item.backup_schedule.s3_sync.wals_cron.minute | default(omit) }}"
-      loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
+      loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'defined') | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
       no_log: "{{ barman_no_log | bool }}"
       become: true
     - name: Setup cron job to collect S3 bucket stats if telegraf option is enabled # noqa jinja[spacing]
@@ -64,7 +64,7 @@
         hour: "{{ item.backup_schedule.s3_sync.stats_cron.hour | default(omit) }}"
         minute: "{{ item.backup_schedule.s3_sync.stats_cron.minute | default(omit) }}"
         state: "{{ collect_stats | ternary('present', 'absent') }}"
-      loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
+      loop: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'defined') | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
       no_log: "{{ barman_no_log | bool }}"
       become: true
 
@@ -80,15 +80,15 @@
     day: "{{ item.backup_schedule.custom.cron.day | default(omit) }}"
     hour: "{{ item.backup_schedule.custom.cron.hour | default(omit) }}"
     minute: "{{ item.backup_schedule.custom.cron.minute | default(omit) }}"
-  loop: "{{ barman_pg_servers | selectattr('backup_schedule.custom', 'mapping') | list }}"
+  loop: "{{ barman_pg_servers | selectattr('backup_schedule.custom', 'defined') | selectattr('backup_schedule.custom', 'mapping') | list }}"
   no_log: "{{ barman_no_log | bool }}"
   become: true
 
 - name: Find unmanaged crontab files in /etc/cron.d
   vars:
     barman_managed_crontabs_backup: "{{ barman_pg_servers | selectattr('backup_schedule', 'defined') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_backup) | list }}"
-    barman_managed_crontabs_s3: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_s3) | list }}"
-    barman_managed_crontabs_custom: "{{ barman_pg_servers | selectattr('backup_schedule.custom', 'mapping') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_custom) | list }}"
+    barman_managed_crontabs_s3: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'defined') | selectattr('backup_schedule.s3_sync', 'mapping') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_s3) | list }}"
+    barman_managed_crontabs_custom: "{{ barman_pg_servers | selectattr('backup_schedule.custom', 'defined') | selectattr('backup_schedule.custom', 'mapping') | map(attribute='name') | map('regex_replace', '^(.*)$', barman_crontab_prefix ~ '\\1' ~ barman_crontab_suffix_custom) | list }}"
     barman_managed_crontabs: "{{ (barman_managed_crontabs_backup + barman_managed_crontabs_s3 + barman_managed_crontabs_custom) | join(',') }}"
   ansible.builtin.find:
     paths: "/etc/cron.d"

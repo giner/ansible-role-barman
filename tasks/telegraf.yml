@@ -9,8 +9,8 @@
       ansible.builtin.fail:
         msg: "Telegraf service doesn't exist. Make sure telegraf is installed."
       when:
-        - '"telegraf" not in services'
-        - '"telegraf.service" not in services'
+        - '"telegraf" not in ansible_facts.services'
+        - '"telegraf.service" not in ansible_facts.services'
     - name: Install jq
       ansible.builtin.package:
         name: jq
@@ -24,7 +24,7 @@
       become: true
     - name: Configure Telegraf to collect metrics from Barman
       vars:
-        barman_pg_servers_with_s3_sync: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
+        barman_pg_servers_with_s3_sync: "{{ barman_pg_servers | selectattr('backup_schedule.s3_sync', 'defined') | selectattr('backup_schedule.s3_sync', 'mapping') | list }}"
       ansible.builtin.template:
         src: barman-telegraf.conf.j2
         dest: /etc/telegraf/telegraf.d/barman-telegraf.conf
@@ -53,4 +53,4 @@
   become: true
   when:
     - barman_telegraf_update is changed or barman_telegraf_remove is changed
-    - '"telegraf" in services or "telegraf.service" in services'
+    - '"telegraf" in ansible_facts.services or "telegraf.service" in ansible_facts.services'

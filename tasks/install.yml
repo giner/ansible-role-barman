@@ -20,7 +20,7 @@
   become: true
 
 - name: Install dependencies for s3 sync
-  when: barman_pg_servers | selectattr('backup_schedule.s3_sync', 'mapping') | list | length > 0
+  when: barman_pg_servers | selectattr('backup_schedule.s3_sync', 'defined') | selectattr('backup_schedule.s3_sync', 'mapping') | list | length > 0
   block:
     # TODO: Replace global installation of AWS CLI by a dedicated one
     # specifically for Barman. This will solve two problems:

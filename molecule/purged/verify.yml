@@ -46,8 +46,7 @@
       ansible.builtin.fail:
         msg: "File {{ item }} was not deleted"
       vars:
-        files_found: "{{ barman_all_configs.files + barman_cron_files.files + barman_sudoers_configs.files + barman_telegraf_configs.files +
-          barman_usr_local_bin_scripts.files }}"
+        files_found: "{{ barman_all_configs.files + barman_cron_files.files + barman_sudoers_configs.files + barman_telegraf_configs.files + barman_usr_local_bin_scripts.files }}"
       loop: "{{ files_found | map(attribute='path') | list }}"
     - name: Gather the package facts
       ansible.builtin.package_facts:

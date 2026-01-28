@@ -40,8 +40,7 @@
             mode: "0644"
         - name: "Add PostgreSQL repository | apt"
           ansible.builtin.apt_repository:
-            repo: "deb [signed-by=/etc/apt/keyrings/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg
-              main {{ postgresql_version }}"
+            repo: "deb [signed-by=/etc/apt/keyrings/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main {{ postgresql_version }}"
         - name: "Install PostgreSQL package"
           ansible.builtin.package:
             name: "postgresql-{{ postgresql_version }}"
